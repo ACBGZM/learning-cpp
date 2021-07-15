@@ -4,7 +4,7 @@ int main() {
 	Sales_item total;
 	if (std::cin >> total) {
 		Sales_item trans;
-		while (std::cin>>trans) {
+		while (std::cin >> trans) {
 			if (total.same_isbn(trans)) {
 				total += trans;
 			}
