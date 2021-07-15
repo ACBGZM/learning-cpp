@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{9e631109-083f-4f7f-8a4c-1c285a5dbb62}</ProjectGuid>
-    <RootNamespace>ex19</RootNamespace>
+    <ProjectGuid>{86ba8828-5eee-4f6c-9f79-e7b8ceaa6fce}</ProjectGuid>
+    <RootNamespace>My04bookstore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -139,7 +139,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="ex-1_9.cpp" />
+    <ClCompile Include="04-bookstore.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sales_item.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
