@@ -18,5 +18,20 @@
     <ClCompile Include="temp.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="temp2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp6.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -494,7 +494,7 @@ const int ci = i;	// int 给 const int 初始化
 int j = ci;			// const int 给 int 初始化
 ```
 
-（ci的常量特征只有在执行改变ci的操作时才会发挥作用。）
+（const的常量特征只有在执行改变const的操作时才会发挥作用。）
 
 
 
