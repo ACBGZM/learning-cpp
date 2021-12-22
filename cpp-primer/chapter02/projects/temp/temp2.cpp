@@ -1,3 +1,4 @@
+// sizeof
 #include<iostream>
 int main2()
 {

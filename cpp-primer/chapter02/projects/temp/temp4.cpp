@@ -1,3 +1,4 @@
+// 指针数组，数组指针
 #include<iostream>
 int main4()
 {

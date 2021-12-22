@@ -140,11 +140,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="temp.cpp" />
+    <ClCompile Include="temp10.cpp" />
+    <ClCompile Include="temp11.cpp" />
     <ClCompile Include="temp2.cpp" />
     <ClCompile Include="temp3.cpp" />
     <ClCompile Include="temp4.cpp" />
     <ClCompile Include="temp5.cpp" />
     <ClCompile Include="temp6.cpp" />
+    <ClCompile Include="temp7.cpp" />
+    <ClCompile Include="temp8.cpp" />
+    <ClCompile Include="temp9.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

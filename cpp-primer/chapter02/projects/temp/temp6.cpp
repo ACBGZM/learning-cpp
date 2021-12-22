@@ -1,3 +1,4 @@
+// structºÍ¶ÑÕ»
 #include<iostream>
 
 struct MyStruct
@@ -6,7 +7,7 @@ struct MyStruct
     int size = 0;
 };
 
-int main()
+int main6()
 {
     MyStruct mystruct1;
     MyStruct mystruct2;

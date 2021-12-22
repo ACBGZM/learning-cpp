@@ -1,3 +1,4 @@
+// 指针常量、常量指针
 #include<iostream>
 int a;
 int main1() {
