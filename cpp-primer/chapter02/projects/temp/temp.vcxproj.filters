@@ -48,5 +48,11 @@
     <ClCompile Include="temp11.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="temp12.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp13.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

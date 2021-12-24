@@ -27,7 +27,7 @@ public:
 };
 
 
-int main()
+int main11()
 {
 	vector<char> s1_name = { 'l', 'i', 'h', 'u', 'a' };
 	char* s1_favoritesong = (char*)"jingle bell";	// Merry Christmas! 2021/12/22
