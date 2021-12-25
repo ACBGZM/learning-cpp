@@ -33,7 +33,7 @@ void fun()
 }
 
 
-int main()
+int main13()
 {
     fun();
     return 0;
