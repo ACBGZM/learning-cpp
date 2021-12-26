@@ -57,5 +57,14 @@
     <ClCompile Include="temp14.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="temp15.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp16.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="temp17.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

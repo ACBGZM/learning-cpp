@@ -49,7 +49,7 @@ void  doexception(Exception e)
 
 class Exception;
 
-int main()
+int main14()
 {
     Exception excp(string("song"));
 

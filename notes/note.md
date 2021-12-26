@@ -1420,7 +1420,7 @@ int main(){
 
 当编译器发现类中有虚函数时，会创建虚函数表，==把虚函数的入口地址放入虚函数表，并在对象中增加一个vptr，用于指向类的虚函数表==。<u>当子类重写基类的虚函数时，会将虚函数表中对应的指针进行替换，从而调用子类覆盖后的虚函数，实现动态绑定</u>。（==vptr依然指向虚函数表，虚函数表内部的指针改变==）
 
-- 虚函数表存放于常量区
+- 虚函数表存放于常量区，类似于一个数组（存放指针，指向代码区的函数）
 - vptr存放于对象中
 
 虚函数表不针对对象，而是针对类。==类的所有对象共享类的虚函数表==。
@@ -2235,8 +2235,8 @@ union obj{
 ```
 
 - 内存分配：
-  - allocate函数内先判断要分配的内存大小
-    - ==若 > 128 Bytes，直接调用第一级配置器==，使用封装的库函数
+  - ==allocate函数内先判断要分配的内存大小== 
+    - ==若 > 128 Bytes，直接调用第一级配置器==，使用封装的库函数分配内存
     - ==< 128 Bytes，根据要分配的内存大小，从free_list的16个链表中选出一个链表==，取出该链表的第一个节点返回。如果相应链表为空，就用refill()函数，填充该链表
       - refill()函数内，先调用chunk_alloc()函数，==从内存池分配默认为20个链表结点大小的内存==（一整块。内存池内存不足时，返回的内存块小）
       - 然后，==refill()函数将这一大块内存分成20等分，并连接起来形成链表==，将这个链表返回
@@ -2249,6 +2249,325 @@ union obj{
     - 如果malloc()成功，返回相应内存大小给refill()
     - 如果malloc()失败，会搜索其他链表的可用内存块，添加到内存池，再调用chunk_alloc()分配内存池的内存
       - 如果其他链表也无内存块可用，则只能调用第一级空间适配器
+
+
+
+
+
+
+
+## C++ 内存管理
+
+#### new/delete 和 malloc/free 
+
+- new/delete 是C++的关键字，malloc/free 是C语言stdlib.h库中的库函数
+- 静态和动态
+  - <u>malloc/free必须明确大小</u>，并且<u>只操作内存、不操作对象，不能用在动态类上</u>
+  - <u>new/delete会自动进行类型检查、确定大小</u>，并且<u>有构造、析构操作，可以用于动态对象</u>
+  - new一般分两步：<u>new内存、构造</u> 
+    - new操作对应malloc，但new操作也可以重载、自定义分配策略（不分配、分配到非内存设备上都可以），但malloc只能分配到内存的堆区
+    - 构造操作调用构造函数
+  - delete调用析构函数，free不调用析构函数
+- new类型是安全的，malloc不是安全的
+  - 分配时，进行类型检查
+    - `int* p = new float[2];` 编译器会报错
+    - `int p = malloc(2*sizeof(int));` 编译时编译器不报错
+  - 分配不成功时，两者都返回空指针
+    - <u>new会抛出异常</u> 
+    - malloc需要用return终止函数或exit终止程序
+- new/delete 直接带具体类型的指针，malloc和free返回void类型的指针
+
+```c++
+int* p = new int[2];
+int* q = (int*)malloc(2 * sizeof(int));	// malloc返回void*，需强转成int*，相对的不安全
+```
+
+delete和free被调用后，内存不会立即回收，指针也不会指向空。只是告诉OS这一块内存被释放了，可以做其他用途。
+
+由于没有重新对这块内存进行写操作，内存中的变量没有发生变化，出现野指针的情况。因此，释放内存后应该将指针赋值nullptr。
+
+
+
+
+
+#### delete 和 delete[]
+
+```c++
+int* a = new int(1);
+delete a;
+
+int* b = new int(2);
+delete [] b;
+
+int* c = new int[11];
+delete c;
+
+int* d = new int[12];
+delete [] d;
+```
+
+- 对于简单类型，使用new分配内存后，不管是不是数组形式，两种方式都可以释放内存
+- 对于自定义类型，需要<u>对单个对象使用delete，对对象数组使用delete[]，逐个调用数组中的对象的析构函数，从而释放所有内存</u> 
+  - 如果反过来使用，其行为是未定义的
+- 最恰当的方式：如果用new，就用delete；如果用 new []，就用 delete []
+
+
+
+
+
+#### 内存块太小，导致malloc和new不成功、返回空指针，如何处理
+
+- 对于malloc，需要判断其是否返回空指针，如果是，马上用return终止函数或用exit终止程序
+- 对于new，默认抛出异常，可以catch
+
+```c++
+try{
+    int* ptr = new int[10000000];
+} catch(bad_alloc &memExp){
+    cerr << memExp.what() << endl;
+}
+```
+
+- new还可以使用 `set_new_handler` 函数
+  - 如果new不能满足内存分配请求，`no_more_memory` 会反复调用，所以 `set_new_handler`函数必须完成：
+    - 让更多内存可被使用：可以在程序一开始，分配一大块内存，当`set_new_handler`第一次被调用时，将这些内存释放，还给程序使用
+    - 使用另一个 `set_new_handler`
+    - 卸除 `set_new_handler`：返回空指针，这样new会抛出异常
+    - 直接抛出bad_alloc异常
+    - 调用abort或exit
+
+```c++
+void no_more_memory() {
+	cerr << "Unable to satisfy request for memory" << endl;
+	abort();
+}
+int main() {
+	set_new_handler(no_more_memory);
+	int *ptr = new int[10000000];
+}
+```
+
+
+
+
+
+#### 内存泄漏
+
+###### 内存泄漏的场景
+
+- 分配内存未释放：new/delete没有成对出现，malloc/free没有成对出现
+  - 在堆中创建对象分配内存，但未显示释放内存。如在局部分配内存，未在调用者函数体内释放
+  - 在构造函数中动态分配内存，但未在析构函数中正确释放内存
+
+```c++
+char* getMemroy(){
+    char* p = (char*)malloc(30);
+    return p;
+}
+int main(){
+    char* p = getMemory();	// 未释放内存
+    return 0;
+}
+```
+
+- （==浅拷贝==）未定义拷贝构造函数，未重载赋值运算符，两次释放相同内存
+  - 类中包含指针变量，但默认拷贝构造函数、赋值运算符进行浅拷贝，两个指针对象指向同一个内存空间，操作、释放都会影响另一个
+- （==虚函数多态==）没有将基类析构函数定义为虚函数 
+  - 基类指针指向派生类的对象，调用析构函数时
+    - 如果析构函数是虚函数，调用派生类的析构函数、自动调用基类的析构函数，释放所有内存
+    - 如果析构函数不是虚函数，调用基类的析构函数，派生类内存空间没有被释放
+
+###### 判断、定位内存泄漏的方法
+
+Linux系统下，可以使用valgrind、mtrace等内存泄漏检测工具。
+
+
+
+
+
+#### 内存的分配方式
+
+- 在栈上分配：
+  - 临时变量、局部变量、函数参数、函数返回地址
+  - 函数结束时自动释放
+  - 栈内存的分配运算内置于处理器的指令集中，效率高，但容量小
+  - 先进后出，没有碎片
+- 在堆上分配：
+  - 程序员手动申请
+  - 使用new/delete、malloc/free管理，分配、释放灵活
+  - 一般由语言实现，效率低，容量大
+  - 有碎片
+- 在数据区分配
+  - 常量存储区
+    - 常量、文字常量等，不可修改
+  - 全局/静态区
+    - 全局变量，静态变量等
+    - 编译期间分配内存，在整个程序的运行期间都存在
+- 在代码区分配
+  - 存储二进制代码
+
+
+
+
+
+#### 静态内存分配，动态内存分配
+
+- 静态内存分配 `int a[10];`
+  - 由编译器控制
+  - 在编译时期完成，不占用CPU资源
+  - 在栈上分配
+  - 不需要指针、引用类型的支持
+  - 按计划分配，在编译期计算好，确定内存块大小
+  - 运行效率高
+- 动态内存分配 `malloc` `new`
+  - 由程序员控制
+  - 在运行时期完成，分配和释放都要占用CPU资源
+  - 在堆上分配
+  - 需要指针、引用等类型支持
+  - 按需分配
+  - 运行效率低，可能造成内存泄漏
+
+
+
+
+
+#### 构造函数、析构函数私有化
+
+- 不想让外面的用户直接构造一个类的对象，而希望用户只能构造这个类的子类，就<u>将类的构造函数/析构函数声明为protected，而将子类的构造函数/析构函数声明为public</u> 
+
+```c++
+class A{
+protected:
+    A(){}
+public:
+    void test(){ cout << "call A.test()" << endl; }
+};
+
+
+class B : public A{
+public:
+    B(){}
+};
+
+int main(){
+    A a;		// 报错，A不允许外部实例化
+    B b;		// 允许
+    b.test();	// 允许
+    return 0;
+}
+```
+
+- 如果将构造函数/析构函数声明为private，那么只有类的内部能够创建这个类的对象
+  - 这个getInstace方法无法被调用，因为调用它代表有一个A类对象被构造出来，但构造函数是private的
+
+```c++
+class A{
+private:
+    A(){}
+    ~A(){}
+public:
+    void getInstance(){ A a; }
+};
+int main(){
+    A a;	// 编译报错
+    a.getInstance();
+}
+```
+
+- 如果getInstance是一个静态函数的话，就可以不需要通过一个对象直接调用了
+
+```c++
+class A{
+private:
+    A():data(10){ cout<< "A()" << endl; }
+    ~A(){ cout<< "~A()" << endl; }
+public:
+    static A& getInstance(){
+        static A a;
+        return a;
+    }
+    void Print(){ cout<< data << endl; }
+private:
+    int data;
+};
+
+int main(){
+    A& ra = A::getInstance();
+    ra.Print();
+    return 0;
+}
+```
+
+- 这就是单例模式：
+  - 构造函数私有化
+  - 维护类的唯一实例，使用类的私有指针指向这个实例
+  - 提供public的静态成员函数，获得这个实例
+
+```c++
+// 懒汉式单例，getInstace()在第一次被调用时，才new一个对象返回
+class Singleton{
+private:
+    static Singleton* instance;
+private:
+    Singleton() {};
+	~Singleton() {};
+	Singleton(const Singleton&);
+	Singleton& operator=(const Singleton&);
+public:
+    static Singleton* getInstance(){
+        if(instance == nullptr) instance = new Singleton();		// 初始化唯一实例
+        return instance;	// 返回指针
+    }
+};
+```
+
+```c++
+// 饿汉式单例，单例在程序运行时立刻被初始化
+class Singleton{
+private:
+    static Singleton instance;	// 初始化唯一实例
+private:
+    Singleton() {};
+	~Singleton() {};
+	Singleton(const Singleton&);
+	Singleton& operator=(const Singleton&);
+public:
+    static Singleton& getInstance(){
+        return instance;	// 返回实例
+    }
+};
+```
+
+
+
+
+
+#### 如何构造一个类，使其只能在堆或栈上分配内存？
+
+- 只能在堆上分配内存：==析构函数声明为private== 
+  - 当在栈上生成对象时，对象会自动析构，也就说析构函数必须可以访问。而堆上生成对象，由于析构时机由程序员控制，所以不一定需要析构函数
+  - 需要另外提供一个成员函数，完成delete操作
+- 只能在栈上生成对象：==将new和delete重载为private== 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2436,23 +2755,9 @@ unity和ue4
 
 
 
-虚指针，虚函数表，虚表是什么数据结构
-
-vptr
-
 TCP可靠，TCP拥塞控制如何实现
-
-右值，forward和move的区别，引用折叠
 
 模板类的迭代器的区别
 
-vector扩容机制和优化方法
 
-拷贝构造函数，深浅拷贝等；如果成员变量中有指针，调用默认拷贝构造函数的问题，自定义拷贝构造函数
-
-
-
-大根堆小根堆代码
-
-B树系列，红黑树
 
