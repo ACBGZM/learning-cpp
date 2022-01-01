@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="19.cpp" />
     <ClCompile Include="temp.cpp" />
     <ClCompile Include="temp10.cpp" />
     <ClCompile Include="temp11.cpp" />
@@ -148,6 +149,7 @@
     <ClCompile Include="temp15.cpp" />
     <ClCompile Include="temp16.cpp" />
     <ClCompile Include="temp17.cpp" />
+    <ClCompile Include="temp18.cpp" />
     <ClCompile Include="temp2.cpp" />
     <ClCompile Include="temp3.cpp" />
     <ClCompile Include="temp4.cpp" />

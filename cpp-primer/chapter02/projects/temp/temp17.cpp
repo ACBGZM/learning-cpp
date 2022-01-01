@@ -32,7 +32,7 @@ class MyClass
 	virtual void foo()=0;
 };
 
-int main()
+int main17()
 {
 	printf("%d\n", sizeof(S1)); // Êä³ö24
 	printf("%d\n", sizeof(S1)); // Êä³ö24
