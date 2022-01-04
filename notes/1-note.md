@@ -20,7 +20,7 @@ C++ 11
 
 |             单位：Byte             | x86 sizeof() | x64 sizeof() |
 | :--------------------------------: | :----------: | :----------: |
-|                指针                |      4       |      8       |
+|              **指针**              |      4       |      8       |
 |                bool                |      1       |              |
 |                char                |      1       |              |
 |                int                 |      4       |              |
@@ -32,7 +32,7 @@ C++ 11
 |              空struct              |      1       |              |
 |     struct{int,int,char,char}      |      12      |              |
 |   struct{double, int, int, char}   |      24      |              |
-| struct{int, long long, int, char*} |   32(4848)   |   24(4844)   |
+| struct{int, long long, int, char*} |   24(4844)   |   32(4848)   |
 | struct{int, int, long long, char*} |   24(4488)   |   24(4484)   |
 
 ###### 整型
@@ -44,7 +44,7 @@ C++ 11
 ###### 机器实现
 
 - 可寻址最小内存块：字节（byte），存储的基本单元：字（word）
-- x32，x64指的都是字长。在32位机器：1word=4byte=32bit，在64位机器：1word=8byte=64bit
+- 32，64指的都是字长。在32位机器：1word=4byte=32bit，在64位机器：1word=8byte=64bit
 - 计算机将每个字节（byte）跟一个地址关联起来。为了赋予内存中某个地址明确的含义，必须首先知道存储在该地址的数据的类型。类型决定了数据占的地址数，以及如何解释这些地址的内容
 
 ###### 浮点型
@@ -62,6 +62,8 @@ C++ 11
 
 - 位：最小的<u>存储单位</u>是bit，存储一个二进制位
 - 字节：以8个bit组成一个Byte，作为<u>存储单元</u>，是支持计算机存、取数据的最小单位
+  - 计算机内存中的一个地址就是一个字节
+
 - 地址：变量占用空间的起始地址，在分配时决定，之后不再改变、直到变量撤销。地址值是一个常量
 
 ###### 使用
@@ -211,7 +213,7 @@ public:
   - union中各成员占用的内存从同一地址开始，占自己元素的最小公倍数的大小
     - union{char [13], int}正常是16字节（考虑到是int长度的倍数）；如果有#pragma pack 2，扩充时不是按照4字节的倍数来算，而是按照2的倍数来算。最终得到大小为14字节
   - struct和class在C++中其实是一样的，struct也可以有构造函数，析构函数，成员函数和（private、protected、public）继承。两者的区别在于class默认的成员类型是private，而struct为public。 class默认的继承方式为private，而struct为public。其实核心是struct是数据聚集起来，便于人访问，所以默认的是 public，而class是封装，不让人访问，所以是private。
-  - struct或class中定义的<u>成员函数和构造和析构函数不占整体的空间</u>。如果有虚函数的话，会有<u>4个字节的地址存放虚函数表的地址</u>。
+  - struct或class中定义的<u>成员函数和构造和析构函数不占整体的空间</u>。如果有虚函数的话，会有<u>一个指针类型的地址（32位4字节，64位8字节）存放虚函数表的地址</u>。
   - 类或结构体的<u>静态成员变量不占用结构体或类的空间</u>，也就是说sizeof出来的大小跟静态成员变量的大小无关。在最后补齐字节的时候，也与静态成员变量无关。
     - <u>类或结构体的静态成员变量存储在全局/静态存储区</u>，而类或结构体本身存储在栈上，两者在内存占用上没有关系
 
@@ -296,7 +298,7 @@ int main(){
 }
 ```
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\2.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\2.png" alt="70" style="zoom:67%;" />
 
 ###### 例二（栈区）：
 
@@ -312,7 +314,7 @@ int main(){
 }
 ```
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\3.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\3.png" alt="70" style="zoom:67%;" />
 
 
 
@@ -340,7 +342,7 @@ int main(){
 }
 ```
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\4.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\4.png" alt="70" style="zoom:67%;" />
 
 ###### 例四（结构体）：
 
@@ -350,16 +352,20 @@ struct MyStruct{
     int i;
 }
 
-// 静态结构体数组，在栈上分配空间
-MyStruct m1[3] = { {"hello", 10}, {"world", 10}, {"!", 3} };
+int main(){
+    // 静态结构体数组，在栈上分配空间
+    MyStruct m1[3] = { {"hello", 10}, {"world", 10}, {"!", 3} };
 
-// 动态结构体数组，在堆上分配空间，在栈上声明指针指向这个空间
-MyStruct* m2 = (MyStruct*)malloc(3 * sizeof(MyStruct));
-for(i...){
-    strcpy(m2[i].c, "...");
-    m2[i].i = ...;
+    // 动态结构体数组，在堆上分配空间，在栈上声明指针指向这个空间
+    MyStruct* m2 = (MyStruct*)malloc(3 * sizeof(MyStruct));
+    for(i...){
+        strcpy(m2[i].c, "...");
+        m2[i].i = ...;
+    }
+    free(m2);
+    
+    return 0;
 }
-free(m2);
 ```
 
 
@@ -368,7 +374,7 @@ free(m2);
 
 #### 内存分布
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\5.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\5.png" alt="70" style="zoom:67%;" />
 
 
 
@@ -703,7 +709,7 @@ auto_ptr<string> p2;
 p2 = p1;	// auto_ptr不会报错
 ```
 
-<u>p2剥夺了p1的所有权，但当程序访问p1时会报错</u>。auto_ptr存在潜在的内存崩溃问题，在C++11中已被弃用。
+<u>p2剥夺了p1的所有权，当程序访问p1时会报错</u>。auto_ptr存在潜在的内存崩溃问题，在C++11中已被弃用。
 
 
 
@@ -828,7 +834,7 @@ https://www.cnblogs.com/mq0036/p/3382732.html
   - 长度：指针长度（系统字长）
   -  `int (*p2)[10]` ：p2是指针，指向 int[10] 的数组
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\1.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\1.png" alt="70" style="zoom:67%;" />
 
 ###### 使用
 
@@ -1284,11 +1290,11 @@ if(p != nullptr);
 
 - <u>对于基本类型，拷贝的是值，函数内修改栈上参数的值</u> 
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\6.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\6.png" alt="70" style="zoom:67%;" />
 
 - <u>对于引用类型，拷贝的是地址，因此函数会对堆中相应地址的元素直接进行修改</u> 
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\7.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\7.png" alt="70" style="zoom:67%;" />
 
 ###### 浅拷贝和深拷贝
 
@@ -1863,7 +1869,7 @@ public:
 
 - `vec.clear()` 时，<u>内存空间不释放，仅清除所有数据</u>
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\10.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\10.png" alt="70" style="zoom:67%;" />
 
 ###### vector 的常用函数
 
@@ -1924,7 +1930,7 @@ list底层是一个==双向链表==，以结点为单位存储数据，结点的
 
 <u>list不支持随机存取，适合需要大量插入删除，不关心随机存取的应用场景。</u> 
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\11.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\11.png" alt="70" style="zoom:67%;" />
 
 ###### list 的常用函数
 
@@ -2036,7 +2042,7 @@ B树属于多叉树，又名平衡多路查找树（查找路径不止2）
 - ==每个结点的关键字个数不只2个， <= M-1== 
 - ==所有叶子结点均在同一层== 
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\13.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\13.png" alt="70" style="zoom:67%;" />
 
 B树相对于平衡二叉树的不同是，每个结点包含的关键字增多了，特别是在B树应用到数据库中的时候，数据库充分利用了磁盘块的原理（磁盘数据存储是采用块的形式存储的，每个块的大小为4K，每次IO进行数据读取时，同一个磁盘块的数据可以一次性读取出来），<u>把结点大小限制在磁盘块大小范围，充分使用磁盘块大小空间</u>；树的<u>结点关键字增多后，树的层级比原来的二叉树少了，减少数据查找的次数和复杂度</u>。
 
@@ -2052,7 +2058,7 @@ B树相对于平衡二叉树的不同是，每个结点包含的关键字增多�
 - ==B+树叶子结点保存了父结点的所有关键字指针==，所有数据地址必须到叶子结点才能获取到，所以每次查询次数都一样
 - ==B+树叶子结点的关键字从小到大排序，左边的结尾数据会保存右边结点开始数据的指针==，所有的叶子结点组成一个有序的大链表
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\14.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\14.png" alt="70" style="zoom:67%;" />
 
 B+树的特点：
 
@@ -2071,7 +2077,7 @@ B+树的特点：
 - B+树初始化的关键字初始化个数是ceil(m/2)，b\*树的初始化个数为（ceil(2/3\*m)）
 - B+树结点满时就会分裂，而B\*树结点满时会检查兄弟结点是否满（因为每个结点都有指向兄弟的指针），如果兄弟结点未满则向兄弟结点转移关键字，如果兄弟结点已满，则从当前结点和兄弟结点各拿出1/3的数据创建一个新的结点出来
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\15.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\15.png" alt="70" style="zoom:67%;" />
 
 （跟B+树相比，B*树每个结点分配的关键字数量更多，并且结点存有兄弟结点的指针，在结点满时会像兄弟结点转移）
 
@@ -2199,7 +2205,7 @@ C++ 11标准没有hash_map，但出于编译器扩展的目的，一些库将它
 
 哈希表的基本思路是空间换时间。<u>大多数情况下查找或者插入元素的时间复杂度可以达到O(1)， 时间主要花在计算hash值上。然而也有一些极端的情况，最坏的就是hash值全都映射在同一个地址上，这样哈希表就会退化成链表，时间复杂度会变为O(n)。</u> 
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\8.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\8.png" alt="70" style="zoom:67%;" />
 
 
 
@@ -2218,7 +2224,7 @@ C++ 11标准没有hash_map，但出于编译器扩展的目的，一些库将它
 
 ###### C++ 中 hash_table 的实现
 
-<img src="C:\Users\acbgzm\Documents\GitHub\MyPostImage\cppnote-img\basic\9.png" alt="70" style="zoom:67%;" />
+<img src="https://github.com/ACBGZM/MyPostImage/raw/master\cppnote-img\basic\9.png" alt="70" style="zoom:67%;" />
 
 - 使用拉链法解决冲突
 - bucket维护的若干“拉链”不是由STL的双向链表li·st实现，而是使用hashtable_node自定义的linked_list
